@@ -42,11 +42,12 @@ git clone <this-repo>
 cd penn-spark
 npm install
 
-# create the environment file
-echo 'DATABASE_URL="file:./dev.db"' > .env
-echo 'SESSION_SECRET="any-random-string"' >> .env
+# create the environment file — see .env.example
+# you'll need a free Postgres database (e.g. https://neon.tech)
+cp .env.example .env
+# ...then edit .env with your real connection strings
 
-# create the SQLite database from the Prisma schema
+# create the database tables from the Prisma schema
 npx prisma db push
 
 npm run dev
