@@ -2,7 +2,7 @@
 
 A mini Instagram clone built for the Penn Spark web development assessment.
 
-**Live demo:** _coming soon — deployment link will go here_
+**Live demo:** https://instagram-clone-vert-phi-54.vercel.app
 
 ## What it does
 
