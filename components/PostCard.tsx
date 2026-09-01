@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { timeAgo } from "@/lib/format";
 
@@ -24,18 +24,25 @@ export type FeedPost = {
 
 export default function PostCard({
   post,
-  loggedIn,
+  viewerUsername,
 }: {
   post: FeedPost;
-  loggedIn: boolean;
+  viewerUsername: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [comments, setComments] = useState(post.comments);
   const [commentText, setCommentText] = useState("");
   const [showBigHeart, setShowBigHeart] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
+  const loggedIn = viewerUsername !== null;
+  const isPostAuthor = viewerUsername === post.author.username;
+
+  if (deleted) return null;
 
   async function toggleLike() {
     if (!loggedIn) {
@@ -57,6 +64,24 @@ export default function PostCard({
     setShowBigHeart(true);
     setTimeout(() => setShowBigHeart(false), 800);
     if (!liked) toggleLike();
+  }
+
+  async function deletePost() {
+    if (!window.confirm("Delete this post? This can't be undone.")) return;
+    const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setDeleted(true);
+      // On the post's own page there's nothing left to show — go home
+      if (pathname.startsWith("/p/")) router.push("/");
+      router.refresh();
+    }
+  }
+
+  async function deleteComment(commentId: string) {
+    const previous = comments;
+    setComments((c) => c.filter((comment) => comment.id !== commentId));
+    const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
+    if (!res.ok) setComments(previous);
   }
 
   async function submitComment(e: React.FormEvent) {
@@ -96,7 +121,19 @@ export default function PostCard({
           </span>
           <span className="text-sm font-semibold">@{post.author.username}</span>
         </Link>
-        <time className="text-xs text-neutral-400">{timeAgo(post.createdAt)}</time>
+        <div className="flex items-center gap-3">
+          <time className="text-xs text-neutral-400">{timeAgo(post.createdAt)}</time>
+          {isPostAuthor && (
+            <button
+              onClick={deletePost}
+              aria-label="Delete post"
+              title="Delete post"
+              className="text-neutral-300 transition-colors hover:text-red-500"
+            >
+              🗑
+            </button>
+          )}
+        </div>
       </header>
 
       <div
@@ -150,14 +187,29 @@ export default function PostCard({
         {comments.length > 0 && (
           <ul className="mt-2 flex flex-col gap-1">
             {comments.map((comment) => (
-              <li key={comment.id} className="text-sm text-neutral-700">
-                <Link
-                  href={`/u/${comment.author.username}`}
-                  className="font-semibold text-neutral-900 hover:underline"
-                >
-                  @{comment.author.username}
-                </Link>{" "}
-                {comment.text}
+              <li
+                key={comment.id}
+                className="group flex items-baseline gap-2 text-sm text-neutral-700"
+              >
+                <span className="min-w-0">
+                  <Link
+                    href={`/u/${comment.author.username}`}
+                    className="font-semibold text-neutral-900 hover:underline"
+                  >
+                    @{comment.author.username}
+                  </Link>{" "}
+                  {comment.text}
+                </span>
+                {(viewerUsername === comment.author.username || isPostAuthor) && (
+                  <button
+                    onClick={() => deleteComment(comment.id)}
+                    aria-label="Delete comment"
+                    title="Delete comment"
+                    className="text-xs text-neutral-300 opacity-0 transition-all hover:text-red-500 group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                )}
               </li>
             ))}
           </ul>

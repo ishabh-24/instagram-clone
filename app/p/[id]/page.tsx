@@ -46,7 +46,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <section className="mx-auto w-full max-w-md px-4 pt-6">
-      <PostCard post={feedPost} loggedIn={Boolean(viewer)} />
+      <PostCard post={feedPost} viewerUsername={viewer?.username ?? null} />
     </section>
   );
 }

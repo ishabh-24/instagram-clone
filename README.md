@@ -20,6 +20,7 @@ Spark is a small photo-sharing social network. You can create an account, post p
 
 - User registration / login / logout with bcrypt-hashed passwords and a JWT session stored in an httpOnly cookie
 - REST API routes for auth, posts, likes, and comments — all with input validation and auth guards
+- Post and comment deletion with authorization checks (only authors can delete their posts; a comment can be removed by its author or the post's owner)
 - Database integration through the Prisma ORM (`User`, `Post`, `Like`, `Comment` models with relations)
 
 **Full-stack**

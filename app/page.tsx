@@ -81,7 +81,9 @@ export default async function Home() {
           </Link>
         </div>
       ) : (
-        feed.map((post) => <PostCard key={post.id} post={post} loggedIn />)
+        feed.map((post) => (
+          <PostCard key={post.id} post={post} viewerUsername={user.username} />
+        ))
       )}
     </section>
   );
